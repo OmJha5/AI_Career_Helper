@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server"
 import { is } from "date-fns/locale";
+import { generateAIInsights } from "./dashboard";
 
 // Data parameter Todo
 export async function UpdateOnboardingData(data : any) {
@@ -16,54 +17,41 @@ export async function UpdateOnboardingData(data : any) {
     if(!user) throw new Error("User not found");
 
     try{
-        const result = await prisma.$transaction(async(tx) => {
+        // Check if industry is already present or not
+        let currIndustry = await prisma.industryInsight.findUnique({
+            where : {industry : data.industry},
+        })
+        
+        let industryInsight;
 
-            // Check if industry is already present or not
-            let currIndustry = await tx.industryInsight.findUnique({
-                where : {industry : data.industry},
-            })
-            
-            let industryInsight;
-
-            if(!currIndustry){
-                // Create industry insight of this industry
-                industryInsight = await tx.industryInsight.create({
-                    data : {
-                        industry : data.industry,
-                        salaryRanges : [],
-                        growthRate : 0,
-                        demandLevel : "Medium",
-                        topSkills : [],
-                        marketOutlook : "Neutral",
-                        keyTrends : [],
-                        recommendedSkills : [],
-                        nextUpdate : new Date(Date.now() + 24 * 7 * 60 * 60 * 1000) // After 1 week updation of the industry insights
-
-                    }
-                })
-            }
-
-            const updatedUser = await tx.user.update({
-                where : {clerkUserId : userId},
+        if(!currIndustry){
+            // Create industry insight of this industry
+            let insights = await generateAIInsights(data.industry);
+            industryInsight = await prisma.industryInsight.create({
                 data : {
                     industry : data.industry,
-                    experience : data.experience,
-                    bio : data.bio,
-                    skills : data.skills,
+                    ...insights,
+                    nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 }
             })
+        }
 
-            return {updatedUser , industryInsight};
+        const updatedUser = await prisma.user.update({
+            where : {clerkUserId : userId},
+            data : {
+                industry : data.industry,
+                experience : data.experience,
+                bio : data.bio,
+                skills : data.skills,
+            }
+        })
 
-        } , {timeout : 10000}) // 10 seconds timeout
-
-        return {success : true , ...result};
-
+        return {success : true , updatedUser , industryInsight};
 
     }
     catch(e){
         console.log("Failed to update the onboarding data" , e);
-        throw new Error("Failed to update the onboarding data");
+        throw new Error("Failed to update the onboarding data" + e);
     }
 
 }

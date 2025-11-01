@@ -82,7 +82,7 @@ model IndustryInsight {
   industry      String    @unique  // The industry this data belongs to (e.g., "tech-software-development")
   
   // Users in this industry
-  users         User[]
+  users         User[] // all users whose User.industry matches this IndustryInsight.industry
   
   // Salary data
   salaryRanges  Json[]    // Array of { role: string, min: float, max: float, median: float, location: string? }
