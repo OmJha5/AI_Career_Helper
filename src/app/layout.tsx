@@ -7,6 +7,7 @@ import {
 } from '@clerk/nextjs'
 import "./globals.css";
 import { dark } from "@clerk/themes";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,6 +50,8 @@ export default function RootLayout({
             <main className="min-h-screen">
               {children}
             </main>
+
+            <Toaster richColors />
 
             {/* Footer */}
             <footer className="bg-muted/50 py-12">

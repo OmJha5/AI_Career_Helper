@@ -1,7 +1,6 @@
 import React from "react";
 import {
   SignInButton,
-  SignUpButton,
   SignedIn,
   SignedOut,
   UserButton,
@@ -11,8 +10,11 @@ import Link from "next/link";
 import { ChevronDown, FileText, GraduationCap, LayoutDashboard, Pen, PenBox, StarsIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import CheckUser from "./CheckUser";
 
-export default function Header() {
+export default async function Header() {
+    await CheckUser();
+
   return (
     <header className="sticky top-0 w-full border-b bg-background/80 backdrop-blur-md z-50">
 
